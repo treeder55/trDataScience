@@ -9,7 +9,7 @@ import os
 import sys
 import time
 import pickle as pk
-import TRplot_04282025 as trp
+import trPlot as trp
 from ipywidgets import interactive,interact,fixed
 import pandas as pd
 from astropy.io import ascii
@@ -242,6 +242,17 @@ def f_savemetadata(metadata,reductionfolder,update=False):
             metadata[key] = metadata_old[key]
     f_makefolder('./trData/'+reductionfolder)
     np.save('./trData/%s/metadata'%reductionfolder,metadata)
+
+def f_combinemetadata(DataDir): # combines all metadata files in the data directory, deletes the uncombined files, and saves new combined file as 'metadata.npy'
+    metafiles = glob.glob(DataDir+'metadata*')
+    combmetadata = {}
+    for i,metafile in enumerate(metafiles):
+        metadata = np.load(metafile,allow_pickle=True).item()
+        combmetadata = f_combinedictionaries(combmetadata,metadata)
+        os.remove(metafile)
+    np.save(DataDir+'metadata',combmetadata)
+    # return metadata
+
 def f_save_M_Qpc(reductionfolder,M_Qpc,metadata_Qplq,update=False,overwrite=True):
     if update:
         oldM_Qpc,oldmetadata_Qplq = np.load('./trData/%sM_Qpc.npy'%reductionfolder,allow_pickle=True).item()
