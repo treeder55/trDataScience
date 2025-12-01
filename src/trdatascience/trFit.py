@@ -10,7 +10,7 @@ import os
 import sys
 import time
 import pickle as pk
-import TRplot_04282025 as trp
+import trPlot as trp
 from ipywidgets import interactive,interact,fixed
 import pandas as pd
 from astropy.io import ascii
@@ -99,6 +99,17 @@ def f_lorentzian(x,p={}):
         }
     lorentzian = (p['sig']/(2*np.pi))*p['A']/((x-p['cen'])**2+(p['sig']/2)**2) + p['off']
     return lorentzian
+
+def f_expdec(x,p={}):
+    if len(p)==0:
+        p = {
+            'off':0.000001,
+            'A':1.,
+            'tau':1.,
+            'cen':x[0]
+        }
+    expdec = p['off']+p['A']*np.exp(-(x-p['cen'])/p['tau'])
+    return expdec
     
 def guessp_gaussian(x,y,p={}):
     ymaxind = np.argmax(y)

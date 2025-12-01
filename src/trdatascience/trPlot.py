@@ -23,6 +23,21 @@ def tripleproduct(a,b,c):
     cc = np.concatenate(np.repeat([c],len(a)*len(b),axis=0))
     return np.array([aa,bb,cc])
 
+def f_mkrverts(x,y,xlim=[],ylim=[]):
+    if len(xlim)==0:
+        xlim = x[[0,-1]]
+    if len(ylim)==0:
+        ylim = y[[0,-1]]
+    xcond = (x>=xlim[0])&(x<=xlim[1])
+    xlen = np.sum(xcond)
+    mkrwidth = 1/xlen
+    ycond = (y>=ylim[0])&(y<=ylim[1])
+    ylen = np.sum(ycond)
+    mkrheight = 1/ylen
+    mkrverts = list(zip(np.array([-mkrwidth,mkrwidth,mkrwidth,-mkrwidth]),np.array([-mkrheight,-mkrheight,mkrheight,mkrheight])))
+    return mkrverts,xlen,ylen
+    
+
 def trsubplot(x,y,nrows=2,ncols=1,index = [0],xlim = 'auto',ylim='auto',xlabel='',ylabel='',xticks=[],xticklabels=[],off = 0,plotsize=[34,10],markersize=2,linewidth=0.5,marker='o',linestyle='-',font1=30,font2=20,title=[],label = [],labelcolor = 'dodgerblue',colors='gist_rainbow',yfactor=1,yoff=0,markerscale=2,legend='on'):
     fig = plt.figure(figsize = (plotsize[0],plotsize[1]))
     #clim = [c,d]
@@ -128,10 +143,10 @@ def trplot(x,y,index = [0],xlim = 'auto',ylim='auto',xlabel='',ylabel='',off = 0
         plt.savefig(savename,format=savename[-3:],bbox_inches='tight')
     plt.show()
     
-def errorbar(x,y,err,colors=0,off=0,index = [0],xlim = 'auto',ylim='auto',xlabel='',ylabel='',
+def errorbar(x,y,err,colors=0,off=0,index = [0],xlim = '',ylim='',xlabel='',ylabel='',
              labelcolor = 'black',plotsize=[1,1.2],markersize=2,linewidth=0.5,marker='o',
              linestyle='-',font1=30,font2=20,title='',label = '',save=False,savename='no_name.jpg',
-             mfc='',mew=.5,ecolor=0,tw=1,tl=1,tml=.5,xtickmul=1000,ytickmul=1000,savefile='',
+             mfc='',mew=.5,ecolor=0,elinewidth=.5,tw=1,tl=1,tml=.5,xtickmul=1000,ytickmul=1000,savefile='',
              yscale = 'linear', **kwargs):
     plt.rcParams['axes.facecolor']='white'
     if len(np.shape(markersize)) == 0:
@@ -144,6 +159,8 @@ def errorbar(x,y,err,colors=0,off=0,index = [0],xlim = 'auto',ylim='auto',xlabel
         linestyle = np.repeat([linestyle],len(x))
     if len(np.shape(linewidth)) == 0:
         linewidth = np.repeat([linewidth],len(x))
+    if len(np.shape(elinewidth)) == 0:
+        elinewidth = np.repeat([elinewidth],len(x))
     if len(np.shape(off)) == 0:
         off = np.repeat([off],len(x))
     if len(np.shape(colors)) == 0:
@@ -161,7 +178,7 @@ def errorbar(x,y,err,colors=0,off=0,index = [0],xlim = 'auto',ylim='auto',xlabel
     ax = fig.add_axes([0,0,plotsize[0],plotsize[1]])
     #print(colors)
     for iii in index:
-        ax.errorbar(np.array(x[iii],dtype=float), np.array(y[iii],dtype=float)+np.array(off[iii], dtype=float), np.array(err[iii],dtype=float), marker=marker[iii], color=colors[iii], markersize = markersize[iii], linewidth=linewidth[iii], label = label[iii], linestyle = linestyle[iii], mfc=mfc[iii], mew=mew[iii], ecolor=ecolor[iii])
+        ax.errorbar(np.array(x[iii],dtype=float), np.array(y[iii],dtype=float)+np.array(off[iii], dtype=float), np.array(err[iii],dtype=float), marker=marker[iii], color=colors[iii], markersize = markersize[iii], linewidth=linewidth[iii], label = label[iii], linestyle = linestyle[iii], mfc=mfc[iii], mew=mew[iii], ecolor=ecolor[iii],elinewidth=elinewidth[iii])
     ax.set_ylabel(ylabel, color=labelcolor,fontsize = font1)
     ax.set_xlabel(xlabel, color=labelcolor,fontsize = font1)
     #ax.secondary_yaxis('right',functions=(lambda x: x/2-.3, lambda x: (x+.3)*2),yticks = [1,2,3])
@@ -178,12 +195,15 @@ def errorbar(x,y,err,colors=0,off=0,index = [0],xlim = 'auto',ylim='auto',xlabel
     if label[0] != '':
         ax.legend(handles,labels,fontsize = font2,markerscale = 2)
     ax.set_title(title,fontsize=font2,color=labelcolor)
-    if ylim != 'auto':
-        ax.set_ylim([ylim[0],ylim[1]])
-    if xlim != 'auto':
+    if len(ylim) != 0:
+        ax.set_ylim([ylim[0],ylim[1]])    
+    if len(xlim) != 0:
         ax.set_xlim([xlim[0],xlim[1]])
     if save:
         plt.savefig(savename,format=savename[-3:],bbox_inches='tight')
+    plt.show()
+    return fig, ax
+
 def plotvol(M,a,b,c,d,color='inferno',labelcolor='black',labelsize1=20,labelsize2=30,xlabel='',ylabel='',zlabel='',climsliders = [0,3,1,5]):
     color = 'inferno'
     h=M[0];k=M[1];E=M[2];I=M[3];
