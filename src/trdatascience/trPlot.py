@@ -12,6 +12,22 @@ from lmfit import models
 from lmfit import Model
 from ipywidgets import interactive
 
+######### custom color maps #############
+def white_gnuplot2():
+    cmap = ListedColormap(np.concatenate([np.linspace(np.array([1,1,1,1]),np.array([0,0,0,1]),40),cm.gnuplot2(np.linspace(0,1,500))],axis=0))
+    return cmap
+
+def seq_summer():
+    middle = cm.summer(np.linspace(0,1,400))
+    cmap = ListedColormap(np.concatenate([np.linspace(np.array([0,0,0,1]),middle[0],200),middle,np.linspace(middle[-1],np.array([1,1,1,1]),100)],axis=0))
+    return cmap
+
+def seq_YlGn():
+    middle = cm.YlGn_r(np.linspace(0,1,400))
+    cmap = ListedColormap(np.concatenate([np.linspace(np.array([0,0,0,1]),middle[0],50),middle,np.linspace(middle[-1],np.array([1,1,1,1]),10)],axis=0))
+    cmap = cmap.reversed()
+    return cmap
+
 def fullproduct(a,b):
     aa = np.repeat(a,len(b))
     bb = np.concatenate(np.repeat([b],len(a),axis=0))
@@ -228,6 +244,7 @@ def plotvol(M,a,b,c,d,color='inferno',labelcolor='black',labelsize1=20,labelsize
         #ax.set_xlim([xlim[0],xlim[1]])
         #ax.set_title('offset = ' + str(off),fontsize=20,color=labelcolor)
         plt.show()
+        
 def pt(M,model,a,b,c=1,d=3,color='inferno',plotsize=[34,10],l = 100,markersize=5,marker='o'):
     u=np.array([M[1],model[1]]);v=np.array([M[2],model[2]]);E=np.array([M[3],model[3]]);Ia=np.array([M[4],model[4]]);
     fig = plt.figure(figsize = (plotsize[0],plotsize[1]))
@@ -252,6 +269,7 @@ def pt(M,model,a,b,c=1,d=3,color='inferno',plotsize=[34,10],l = 100,markersize=5
         #ax.set_xlim([xlim[0],xlim[1]])
         #ax.set_title('offset = ' + str(off),fontsize=20,color=labelcolor)
     plt.show()
+    
 def pt2(M,color='inferno',plotsize=[34,10],markersize=5,marker='o',clim = '',title = ''):
     u=M[0];v=M[1];Ia=M[2];
     if clim == '':
@@ -273,6 +291,7 @@ def pt2(M,color='inferno',plotsize=[34,10],markersize=5,marker='o',clim = '',tit
     #ax.set_xlim([xlim[0],xlim[1]])
     ax.set_title(title,fontsize=20,color=labelcolor)
     plt.show()
+    
 def pt2sub(M,color='',plotsize=[34,10],l = 100,markersize=5,marker='o',nrows=1,ncols=1,clim = '',title='',ylim = '',xlim = '',clabel='',ylabel = '',xlabel='',labelcolor='black',cfontsize = 50,fonts1=30,fonts2=30,save=False,savefile='',dpi=600): #plot, 2 dimensional, with subtitles
     fig = plt.figure(figsize = (plotsize[0],plotsize[1]))
     #clim = [c,d]
@@ -314,6 +333,7 @@ def pt2sub(M,color='',plotsize=[34,10],l = 100,markersize=5,marker='o',nrows=1,n
     plt.show()
     if save:
         fig.savefig(savefile,dpi=dpi)
+        
 def plot2d(x,y,index = [0],xlim = [0,1.4],ylim='auto',off = 0,labelcolor = 'black',plotsize=[2.1,2.5]):
     colors = cm.rainbow(np.linspace(0, 1, len(x)))
     fig = plt.figure()
@@ -329,6 +349,7 @@ def plot2d(x,y,index = [0],xlim = [0,1.4],ylim='auto',off = 0,labelcolor = 'blac
     ax.set_title('offset = ' + str(off),fontsize=20,color=labelcolor)
     if ylim != 'auto':
         ax.set_ylim([ylim[0],ylim[1]])
+        
 def plothist(h=[[]],aspect=1,clim='auto',plotsize=[2.1,2.5],nrows=1,ncols=1,index = [0],xlim = 'auto',ylim='auto',xlabel='',ylabel='',markersize=2,linewidth=0.5,marker='o',linestyle='-',font1=30,font2=20,title='',labelcolor='black',c='gist_rainbow',yfactor=1,yoff=0,markerscale=2,numplots = 1,shrink=1):
     fig = plt.figure(figsize = (plotsize[0],plotsize[1]))
     #clim = [c,d]
@@ -374,6 +395,7 @@ def plothist(h=[[]],aspect=1,clim='auto',plotsize=[2.1,2.5],nrows=1,ncols=1,inde
 #    if clim != 'auto':
 #        im.set_clim(clim[0],clim[1])
 #    plt.show()
+
 def pcolormesh(x = [[]], y = [[]], c=[[]],title='',aspect=1,index = [0],clim=[],xlim = [],ylim=[],norm='linear',
                xlabel='',ylabel='',off = 0,labelcolor = 'black',plotsize=[2.1,2.5],clabel = '',cbarshrink = 1,
                font1=30,font2=20,cmap = 'gnuplot2',tw=1,tmw=1,tl=1,tml=.5,xtickmul=100000,ytickmul=100000,save=False,

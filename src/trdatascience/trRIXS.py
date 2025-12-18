@@ -77,20 +77,29 @@ def getscanfiles(scan_nums):
             print('cannot find scan %i'%scan)
     return scanfiles
 
-def f_D_RIXS_fromSIX(scan_nums, svar = [], scanvar='energy', I='rixs', Erange = [-8000,18000], binsize=4, save=False, 
+def f_D_RIXS_fromSIX(scan_nums, svar = [], scanvar='energy', I='rixs', Erange = [-3000,15000], binsize=4,binshift=0, save=False, Eshifts=None,
                      metavars = ['T_cryo','energy','pol','norm_I0','points_per_pixel','th','tth','scan'], addvars = {}):
     scanfiles = getscanfiles(scan_nums)
     ls = len(scan_nums)
 
-    dscheck = f_hdftods(scanfiles[0])
+    dscheck = f_RIXShdftods(scanfiles[0])
+    if Eshifts is None:
+        Eshifts = dict(zip(scan_nums,np.zeros(ls)))
+        
+    dscheck['E'] = dscheck['E']-Eshifts[scan_nums[0]]
+    Eloss = np.array(dscheck.where((dscheck['E']>Erange[0])&(dscheck['E']<Erange[1]),drop=True)['E'])
+    Eloss = Eloss[:-100] # to ensure all have same length
+    lEloss = len(Eloss)
+        
     scanvarinmeta = len(np.where(np.array(list(dscheck.attrs.keys()))==scanvar)[0])>0
     if scanvarinmeta:
         svar = np.arange(ls)*1.0
     elif len(svar)==0:
         raise Exception('Need to input scan variable array: svar')
 
-    bins = np.arange(Erange[0],Erange[1],binsize*1.)
-    Eloss = bins[:-1]+binsize/2.
+    # bins = np.arange(Erange[0],Erange[1],binsize*1.)#-binsize/2+binshift
+    # Eloss = bins[:-1]+binsize/2.
+    # Eloss = dscheck
     
     metvars = {}
     for k,key in enumerate(metavars):
@@ -99,23 +108,32 @@ def f_D_RIXS_fromSIX(scan_nums, svar = [], scanvar='energy', I='rixs', Erange = 
     nf,nf2= np.arange(ls)*1., np.arange(ls)*1.
     II,cc,ee = {},{},{}
     for f,file in enumerate(scanfiles):
+        scan_num = scan_nums[f]
         ds = f_RIXShdftods(file)
+        ds['E'] = ds['E']-Eshifts[scan_num]
         if scanvarinmeta:
             svar[f] = ds.attrs[scanvar][0].round(1)
         nf[f] = ds.attrs['norm_factor']
         for k,key in enumerate(metavars):
             if key=='pol':
-                temp = ds.attrs[key].decode()
+                try:
+                    temp = ds.attrs[key].decode()
+                except AttributeError:
+                    print('pol variable must be float, likely using circular polarized x-rays')
+                    temp = ds.attrs[key][0]
             else:
                 temp = ds.attrs[key][0]
             metvars[key] = np.append(metvars[key],temp)
-        dsinrange = ds.where((ds['E']>Erange[0])&(ds['E']<Erange[1]),drop=True)
-        ds_binned = dsinrange.groupby_bins('E',bins = bins).mean()
+        # dsinrange = ds.where((ds['E']>Erange[0])&(ds['E']<Erange[1]),drop=True)
+        dsinrange = ds.where((ds['E']>Erange[0])&(ds['E']<Erange[1]),drop=True).isel(E=slice(None,lEloss))
+        # dsinrange = dsinrange.groupby_bins('E',bins = bins).mean()  ## maybe get rid of this and only bin before plotting.
     
-        II[f] = np.array(ds_binned[detector])
-        nf2[f] = np.sum(II[f])
+        II[f] = np.array(dsinrange[I])
+        nf2[f] = np.nansum(II[f])
         II[f]/=nf2[f]
-        cc[f] = np.array(ds_binned[detector+'_rawcounts'])
+        cc[f] = np.array(dsinrange[I+'_rawcounts'])
+
+    
     
     for k,key in enumerate(metavars):
         metvars[key] = ('scanvar',metvars[key])
